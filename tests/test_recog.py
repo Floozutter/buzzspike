@@ -10,10 +10,10 @@ def read_bimg(path: str) -> ndarray:
     return threshed
 
 def test_uoic() -> None:
-    a_bimg = read_mask("tests/test_recog/uoic_a.png")
-    b_bimg = read_mask("tests/test_recog/uoic_b.png")
+    a_bimg = read_bimg("tests/test_recog/uoic_a.png")
+    b_bimg = read_bimg("tests/test_recog/uoic_b.png")
     uoiced = recog.union_of_intersecting_components(a_bimg, b_bimg)
-    n, _, _, _ = cv2.connectedComponentsWithStats(uoiced, 4, cv2.CV_32S)
+    n, _, _, _ = cv2.connectedComponentsWithStats(uoiced, 4)
     cv2.imshow("uoiced", uoiced)
     cv2.waitKey(0)
     assert n == 3

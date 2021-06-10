@@ -2,12 +2,16 @@ import cv2
 import numpy
 from numpy import ndarray
 
-def union_of_intersecting_components(a_bimg: ndarray, b_bimg: ndarray) -> ndarray:
+def union_of_intersecting_components(
+    a_bimg: ndarray,
+    b_bimg: ndarray,
+    connectivity = 4
+) -> ndarray:
     # find the intersecting labels (labels for components that participate in intersections)
     inter = cv2.bitwise_and(a_bimg, b_bimg)
-    n, _, stats, _ = cv2.connectedComponentsWithStats(inter)
-    _, a_labeled = cv2.connectedComponents(a_bimg)
-    _, b_labeled = cv2.connectedComponents(b_bimg)
+    n, _, stats, _ = cv2.connectedComponentsWithStats(inter, connectivity)
+    _, a_labeled = cv2.connectedComponents(a_bimg, connectivity)
+    _, b_labeled = cv2.connectedComponents(b_bimg, connectivity)
     a_intersecting_labels: set[int] = set()
     b_intersecting_labels: set[int] = set()
     for inter_label in range(1, n):
