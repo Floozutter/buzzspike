@@ -1,3 +1,4 @@
+from . import recog
 import mss
 import cv2
 import numpy
@@ -14,11 +15,10 @@ def main() -> None:
             "mon": monitor_number,
         }
         while True:
-            img = numpy.array(sct.grab(region))
-            hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-            mask = cv2.inRange(hsv, (70, 0, 0), (90, 255, 255))
-            result = cv2.bitwise_and(img, img, mask = mask)
-            cv2.imshow("bzst", result)
+            image = numpy.array(sct.grab(region))
+            _, work = recog.killfeed_with_work(image)
+            show = cv2.bitwise_and(image, image, mask = work["uoiced"])
+            cv2.imshow("bzst", show)
             if cv2.waitKey(5) & 0xFF == 27:
                 cv2.destroyAllWindows()
                 return
