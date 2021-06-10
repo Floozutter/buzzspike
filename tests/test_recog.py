@@ -10,8 +10,8 @@ def read_mask(path: str) -> ArrayLike:
     return threshed
 
 def test_uoic() -> None:
-    mask_a = read_mask("test/test_recog/uoic_a.png")
-    mask_b = read_mask("test/test_recog/uoic_b.png")
+    mask_a = read_mask("tests/test_recog/uoic_a.png")
+    mask_b = read_mask("tests/test_recog/uoic_b.png")
     uoiced = recog.union_of_intersecting_components(mask_a, mask_b)
     n, _, _, _ = cv2.connectedComponentsWithStats(uoic, 4, cv2.CV_32S)
     assert n == 2
