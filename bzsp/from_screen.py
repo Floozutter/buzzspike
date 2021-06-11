@@ -1,8 +1,10 @@
-from .core import handle_frame
+from . import core
 import argparse
 import mss
 import cv2
 import numpy
+from numpy import ndarray
+from typing import Iterator
 
 def parse_args() -> tuple[int, int]:
     parser = argparse.ArgumentParser(
@@ -24,11 +26,10 @@ def main(screen: int, delay: int) -> None:
             "height": monitor["height"] // 2,
             "mon": screen,
         }
-        while True:
-            handle_frame(numpy.array(sct.grab(region)))
-            if cv2.waitKey(delay) & 0xFF == 27:
-                cv2.destroyAllWindows()
-                return
+        def it() -> Iterator[ndarray]:
+            while True:
+                yield numpy.array(sct.grab(region))
+        core.handle_source(it(), delay)
 
 if __name__ == "__main__":
     main(*parse_args())

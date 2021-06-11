@@ -1,6 +1,8 @@
-from .core import handle_frame
+from . import core
 import argparse
 import cv2
+from numpy import ndarray
+from typing import Iterator
 
 def parse_args() -> tuple[str]:
     parser = argparse.ArgumentParser(
@@ -16,15 +18,14 @@ def main(path: str) -> None:
     if not cap.isOpened():
         print("error: couldn't open video capture!")
         return
-    fps = cap.get(cv2.CAP_PROP_FPS)
-    delay = int(1000 // fps)
-    print(delay)
-    while cap.isOpened():
-        got, frame = cap.read()
-        handle_frame(frame)
-        if (not got) or (cv2.waitKey(delay) & 0xFF == 27):
-            cv2.destroyAllWindows()
-            return
+    delay = int(1000 // cap.get(cv2.CAP_PROP_FPS))
+    def it() -> Iterator[ndarray]:
+        while cap.isOpened():
+            got, frame = cap.read()
+            if not got:
+                break
+            yield frame
+    core.handle_source(it(), delay)
 
 if __name__ == "__main__":
     main(*parse_args())
