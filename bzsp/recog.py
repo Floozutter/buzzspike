@@ -17,15 +17,16 @@ def union_of_intersecting_components(
 ) -> ndarray:
     # find the intersecting labels (labels for components that participate in intersections)
     inter = cv2.bitwise_and(a_bimg, b_bimg)
-    n, _, stats, _ = cv2.connectedComponentsWithStats(inter, connectivity)
+    n, inter_labeled = cv2.connectedComponents(inter, connectivity)
     _, a_labeled = cv2.connectedComponents(a_bimg, connectivity)
     _, b_labeled = cv2.connectedComponents(b_bimg, connectivity)
     a_intersecting_labels: set[int] = set()
     b_intersecting_labels: set[int] = set()
     for inter_label in range(1, n):
-        top, left = stats[inter_label, cv2.CC_STAT_TOP], stats[inter_label, cv2.CC_STAT_LEFT]
-        a_intersecting_labels.add(a_labeled[top, left])
-        b_intersecting_labels.add(b_labeled[top, left])
+        indices = numpy.where(inter_labeled == inter_label)
+        first_row, first_col = indices[0][0], indices[1][0]
+        a_intersecting_labels.add(a_labeled[first_row, first_col])
+        b_intersecting_labels.add(b_labeled[first_row, first_col])
     # use the intersecting labels to make masks that describe where to bitwise_or
     a_where = numpy.isin(a_labeled, list(a_intersecting_labels))
     b_where = numpy.isin(b_labeled, list(b_intersecting_labels))
