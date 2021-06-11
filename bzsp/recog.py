@@ -52,7 +52,7 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
         white_seg,
         union_of_intersecting_components(green_seg, red_seg)
     )
-    return Kill(), {
+    return (), {
         "white_seg": white_seg,
         "green_seg": green_seg,
         "red_seg": red_seg,
