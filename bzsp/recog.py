@@ -44,8 +44,8 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     white_seg = morph(cv2.inRange(image, (230, 230, 230, 0), (255, 255, 255, 255)), 3)
     green_seg = morph(cv2.inRange(hsv, (50, 30, 50), (90, 130, 200)), 5)
     red_seg = morph(
-        cv2.inRange(hsv, (170, 60, 130), (180, 170, 230)) |
-        cv2.inRange(hsv, (0, 60, 130), (10, 170, 230)),
+        cv2.inRange(hsv, (170, 60, 130), (180, 180, 230)) |
+        cv2.inRange(hsv, (0, 60, 130), (10, 180, 230)),
         5
     )
     uoiced = union_of_intersecting_components(
