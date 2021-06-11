@@ -30,4 +30,3 @@ def handle_source(source: Iterator[ndarray], delay: int) -> None:
             maskname = "red_seg"
         elif keycode == ord("u"):
             maskname = "uoiced"
-
