@@ -8,7 +8,7 @@ class Kill(NamedTuple):
     to: str = ""
     using: str = ""
 
-Work = Any
+Work = dict[str, Any]
 
 def union_of_intersecting_components(
     a_bimg: ndarray,
