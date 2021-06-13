@@ -10,6 +10,13 @@ class Kill(NamedTuple):
 
 Work = dict[str, Any]
 
+def chevron(height: int, width: int) -> ndarray:
+    return cv2.fillConvexPoly(
+        numpy.zeros((height, width)),
+        numpy.array(((0, 0), (width, height // 2), (0, height))),
+        255
+    )
+
 def union_of_intersecting_components(
     a_bimg: ndarray,
     b_bimg: ndarray,
