@@ -1,6 +1,7 @@
 import cv2
 import numpy
 from numpy import ndarray
+import functools
 from typing import NamedTuple, Any
 
 class Kill(NamedTuple):
@@ -10,12 +11,52 @@ class Kill(NamedTuple):
 
 Work = dict[str, Any]
 
+@functools.cache
 def chevron(height: int, width: int) -> ndarray:
     return cv2.fillConvexPoly(
-        numpy.zeros((height, width)),
+        numpy.zeros((height, width), dtype = numpy.uint8),
         numpy.array(((0, 0), (width, height // 2), (0, height))),
         255
     )
+
+def detect_chevrons(bimg: ndarray, temp: bool = False) -> tuple[ndarray]:
+    height, width = 30, 18
+    t = 0.85
+    coefed = cv2.matchTemplate(bimg, chevron(height, width), cv2.TM_CCOEFF_NORMED)
+    _, threshed = cv2.threshold(numpy.float32(coefed), t, 255, cv2.THRESH_BINARY)
+    n, labeled = cv2.connectedComponents(numpy.uint8(threshed))
+    component_masks = (
+        numpy.array(numpy.where(labeled == label, 255, 0), dtype = numpy.uint8)
+        for label in range(1, n)
+    )
+    max_locs = (cv2.minMaxLoc(coefed, mask = mask)[3] for mask in component_masks)
+    return tuple(
+        numpy.array((x, y, width, height))
+        for x, y in max_locs
+    )
+
+def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
+    # get color segments
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    green_segment = cv2.inRange(hsv, (70, 60, 50), (90, 150, 220))
+    red_segment = numpy.bitwise_or(
+        cv2.inRange(hsv, (170, 100, 170), (180, 180, 245)),
+        cv2.inRange(hsv, (  0, 100, 170), ( 10, 180, 245))
+    )
+    # get chevrons using template matches
+    green_chevrons = detect_chevrons(green_segment)
+    red_chevrons = detect_chevrons(red_segment, True)
+    return (), {
+        "green_segment": green_segment,
+        "green_chevrons": green_chevrons,
+        "red_segment": red_segment,
+        "red_chevrons": red_chevrons,
+    }
+
+def killfeed(image: ndarray) -> tuple[Kill, ...]:
+    return killfeed_with_work(image)[0]
+
+""" deprecated """
 
 def union_of_intersecting_components(
     a_bimg: ndarray,
@@ -39,32 +80,3 @@ def union_of_intersecting_components(
     b_where = numpy.isin(b_labeled, list(b_intersecting_labels))
     where = a_where | b_where
     return numpy.bitwise_or(a_bimg, b_bimg, out = numpy.zeros_like(inter), where = where)
-
-def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
-    # get color segments
-    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    def morph(segment: ndarray, size: int) -> ndarray:
-        kernel = numpy.ones((size, size))
-        eroded = cv2.erode(segment, kernel, iterations = 1)
-        dilated = cv2.dilate(eroded, kernel, iterations = 2)
-        return dilated
-    white_seg = morph(cv2.inRange(image, (230, 230, 230, 0), (255, 255, 255, 255)), 3)
-    green_seg = morph(cv2.inRange(hsv, (50, 30, 50), (90, 130, 200)), 5)
-    red_seg = morph(
-        cv2.inRange(hsv, (170, 60, 130), (180, 180, 230)) |
-        cv2.inRange(hsv, (0, 60, 130), (10, 180, 230)),
-        5
-    )
-    uoiced = union_of_intersecting_components(
-        white_seg,
-        union_of_intersecting_components(green_seg, red_seg)
-    )
-    return (), {
-        "white_seg": white_seg,
-        "green_seg": green_seg,
-        "red_seg": red_seg,
-        "uoiced": uoiced,
-    }
-
-def killfeed(image: ndarray) -> tuple[Kill, ...]:
-    return killfeed_with_work(image)[0]
