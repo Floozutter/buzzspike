@@ -44,6 +44,11 @@ def keep_inverted_chevrons(chevrons: Iterable[ndarray], bimg: ndarray) -> tuple[
         return coef[0, 0] >= 0.25
     return tuple(filter(predicate, chevrons))
 
+def pad_chevron(chevron: ndarray) -> ndarray:
+    x, y, w, h = chevron
+    padding = int(10 * h)
+    return numpy.array((x - padding, y, w + 2 * padding, h))
+
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -55,11 +60,16 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get chevrons using template matches
     green_chevrons = keep_inverted_chevrons(detect_chevrons(green_segment), red_segment)
     red_chevrons = keep_inverted_chevrons(detect_chevrons(red_segment), green_segment)
+    # get bounding boxes
+    green_boxes = tuple(map(pad_chevron, green_chevrons))
+    red_boxes = tuple(map(pad_chevron, red_chevrons))
     return (), {
         "green_segment": green_segment,
         "green_chevrons": green_chevrons,
+        "green_boxes": green_boxes,
         "red_segment": red_segment,
         "red_chevrons": red_chevrons,
+        "red_boxes": red_boxes,
     }
 
 def killfeed(image: ndarray) -> tuple[Kill, ...]:
