@@ -2,7 +2,7 @@ import cv2
 import numpy
 from numpy import ndarray
 import functools
-from typing import Any, NamedTuple, Iterator
+from typing import Any, NamedTuple, Iterable
 
 class Kill(NamedTuple):
     by: str = ""
@@ -36,7 +36,7 @@ def detect_chevrons(bimg: ndarray) -> tuple[ndarray]:
         for x, y in max_locs
     )
 
-def keep_inverted_chevrons(chevrons: Iterator[ndarray], bimg: ndarray) -> tuple[ndarray]:
+def keep_inverted_chevrons(chevrons: Iterable[ndarray], bimg: ndarray) -> tuple[ndarray]:
     def predicate(c: ndarray) -> bool:
         x, y, width, height = c
         view = bimg[y: y + height, x: x + width]

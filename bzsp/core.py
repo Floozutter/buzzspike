@@ -2,9 +2,9 @@ from . import recog
 import cv2
 import numpy
 from numpy import ndarray
-from typing import Iterator
+from typing import Iterable
 
-def handle_source(source: Iterator[ndarray], delay: int) -> None:
+def handle_source(source: Iterable[ndarray], delay: int) -> None:
     maskname = ""
     show_green_chevrons = True
     show_red_chevrons = True
