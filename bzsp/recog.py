@@ -47,10 +47,10 @@ def keep_inverted_chevrons(chevrons: Iterable[ndarray], bimg: ndarray) -> tuple[
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    green_segment = cv2.inRange(hsv, (70, 60, 50), (90, 150, 220))
+    green_segment = cv2.inRange(hsv, (60, 45, 50), (100, 150, 220))
     red_segment = numpy.bitwise_or(
-        cv2.inRange(hsv, (170, 100, 170), (180, 180, 245)),
-        cv2.inRange(hsv, (  0, 100, 170), ( 10, 180, 245))
+        cv2.inRange(hsv, (170, 100, 170), (180, 180, 250)),
+        cv2.inRange(hsv, (  0, 100, 170), ( 10, 180, 250))
     )
     # get chevrons using template matches
     green_chevrons = keep_inverted_chevrons(detect_chevrons(green_segment), red_segment)
