@@ -20,7 +20,7 @@ def chevron(height: int, width: int, foreground = True) -> ndarray:
     )
     return c if foreground else ~c
 
-def detect_chevrons(bimg: ndarray) -> tuple[ndarray]:
+def detect_chevrons(bimg: ndarray) -> tuple[ndarray, ...]:
     height, width = 30, 18
     t = 0.85
     coefed = cv2.matchTemplate(bimg, chevron(height, width), cv2.TM_CCOEFF_NORMED)
@@ -36,7 +36,7 @@ def detect_chevrons(bimg: ndarray) -> tuple[ndarray]:
         for x, y in max_locs
     )
 
-def keep_inverted_chevrons(chevrons: Iterable[ndarray], bimg: ndarray) -> tuple[ndarray]:
+def keep_inverted_chevrons(chevrons: Iterable[ndarray], bimg: ndarray) -> tuple[ndarray, ...]:
     def predicate(c: ndarray) -> bool:
         x, y, width, height = c
         view = bimg[y: y + height, x: x + width]
