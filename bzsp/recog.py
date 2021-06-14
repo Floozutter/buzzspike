@@ -2,7 +2,7 @@ import cv2
 import numpy
 from numpy import ndarray
 import functools
-from typing import NamedTuple, Any
+from typing import Any, NamedTuple, Iterator
 
 class Kill(NamedTuple):
     by: str = ""
@@ -12,14 +12,15 @@ class Kill(NamedTuple):
 Work = dict[str, Any]
 
 @functools.cache
-def chevron(height: int, width: int) -> ndarray:
-    return cv2.fillConvexPoly(
+def chevron(height: int, width: int, foreground = True) -> ndarray:
+    c = cv2.fillConvexPoly(
         numpy.zeros((height, width), dtype = numpy.uint8),
         numpy.array(((0, 0), (width, height // 2), (0, height))),
         255
     )
+    return c if foreground else ~c
 
-def detect_chevrons(bimg: ndarray, temp: bool = False) -> tuple[ndarray]:
+def detect_chevrons(bimg: ndarray) -> tuple[ndarray]:
     height, width = 30, 18
     t = 0.85
     coefed = cv2.matchTemplate(bimg, chevron(height, width), cv2.TM_CCOEFF_NORMED)
@@ -35,6 +36,14 @@ def detect_chevrons(bimg: ndarray, temp: bool = False) -> tuple[ndarray]:
         for x, y in max_locs
     )
 
+def keep_inverted_chevrons(chevrons: Iterator[ndarray], bimg: ndarray) -> tuple[ndarray]:
+    def predicate(c: ndarray) -> bool:
+        x, y, width, height = c
+        view = bimg[y: y + height, x: x + width]
+        coef = cv2.matchTemplate(view, chevron(height, width, False), cv2.TM_CCOEFF_NORMED)
+        return coef[0, 0] >= 0.25
+    return tuple(filter(predicate, chevrons))
+
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
@@ -44,8 +53,8 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
         cv2.inRange(hsv, (  0, 100, 170), ( 10, 180, 245))
     )
     # get chevrons using template matches
-    green_chevrons = detect_chevrons(green_segment)
-    red_chevrons = detect_chevrons(red_segment, True)
+    green_chevrons = keep_inverted_chevrons(detect_chevrons(green_segment), red_segment)
+    red_chevrons = keep_inverted_chevrons(detect_chevrons(red_segment), green_segment)
     return (), {
         "green_segment": green_segment,
         "green_chevrons": green_chevrons,
