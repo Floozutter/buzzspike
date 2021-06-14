@@ -5,9 +5,9 @@ import functools
 from typing import Any, NamedTuple, Iterable
 
 class Kill(NamedTuple):
-    by: str = ""
-    to: str = ""
-    using: str = ""
+    team: str
+    by: str
+    to: str
 
 Work = dict[str, Any]
 
@@ -51,6 +51,7 @@ def pad_chevron(chevron: ndarray) -> ndarray:
 
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
+    white_segment = cv2.inRange(image, (175, 175, 175, 0), (255, 255, 255, 255))
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     green_segment = cv2.inRange(hsv, (60, 45, 50), (100, 150, 220))
     red_segment = numpy.bitwise_or(
@@ -63,7 +64,11 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get bounding boxes
     green_boxes = tuple(map(pad_chevron, green_chevrons))
     red_boxes = tuple(map(pad_chevron, red_chevrons))
-    return (), {
+    # read kills
+    green_kills = tuple(Kill("green", "", "") for _ in green_boxes)
+    red_kills = tuple(Kill("red", "", "") for _ in red_boxes)
+    return green_kills + red_kills, {
+        "white_segment": white_segment,
         "green_segment": green_segment,
         "green_chevrons": green_chevrons,
         "green_boxes": green_boxes,

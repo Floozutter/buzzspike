@@ -37,6 +37,8 @@ def handle_source(source: Iterable[ndarray], delay: int) -> None:
             break
         elif keycode == ord("n"):
             maskname = ""
+        elif keycode == ord("w"):
+            maskname = "white_segment"
         elif keycode == ord("g"):
             maskname = "green_segment"
         elif keycode == ord("h"):
