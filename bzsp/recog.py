@@ -44,10 +44,16 @@ def keep_inverted_chevrons(chevrons: Iterable[ndarray], bimg: ndarray) -> tuple[
         return coef[0, 0] >= 0.25
     return tuple(filter(predicate, chevrons))
 
-def pad_chevron(chevron: ndarray) -> ndarray:
-    x, y, w, h = chevron
-    padding = int(10 * h)
-    return numpy.array((x - padding, y, w + 2 * padding, h))
+def bind_chevron(white_segment: ndarray, chevron: ndarray) -> ndarray:
+    x, y, width, height = chevron
+    view = white_segment[y:y + height, :]
+    column_sums = view.sum(axis = 0)
+    bimg = numpy.uint8(numpy.where(column_sums > 0, 255, 0)).reshape(1, -1)
+    bimg[:, x: x + width] = 255
+    cv2.dilate(bimg, cv2.getStructuringElement(cv2.MORPH_RECT, ksize = (15, 1)))
+    _, labeled, stats, _ = cv2.connectedComponentsWithStats(bimg)
+    s = stats[labeled[0, x]]
+    return s[cv2.CC_STAT_LEFT], y, s[cv2.CC_STAT_WIDTH], height
 
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
@@ -62,8 +68,8 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     green_chevrons = keep_inverted_chevrons(detect_chevrons(green_segment), red_segment)
     red_chevrons = keep_inverted_chevrons(detect_chevrons(red_segment), green_segment)
     # get bounding boxes
-    green_boxes = tuple(map(pad_chevron, green_chevrons))
-    red_boxes = tuple(map(pad_chevron, red_chevrons))
+    green_boxes = tuple(bind_chevron(white_segment, c) for c in green_chevrons)
+    red_boxes = tuple(bind_chevron(white_segment, c) for c in red_chevrons)
     # read kills
     green_kills = tuple(Kill("green", "", "") for _ in green_boxes)
     red_kills = tuple(Kill("red", "", "") for _ in red_boxes)
