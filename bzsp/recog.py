@@ -48,9 +48,9 @@ def bind_chevron(white_segment: ndarray, chevron: ndarray) -> ndarray:
     x, y, width, height = chevron
     view = white_segment[y:y + height, :]
     column_sums = view.sum(axis = 0)
-    bimg = numpy.uint8(numpy.where(column_sums > 0, 255, 0)).reshape(1, -1)
+    bimg = numpy.uint8(numpy.where(column_sums > 10, 255, 0)).reshape(1, -1)
     bimg[:, x: x + width] = 255
-    cv2.dilate(bimg, cv2.getStructuringElement(cv2.MORPH_RECT, ksize = (15, 1)))
+    cv2.dilate(bimg, cv2.getStructuringElement(cv2.MORPH_RECT, ksize = (50, 1)), bimg)
     _, labeled, stats, _ = cv2.connectedComponentsWithStats(bimg)
     s = stats[labeled[0, x]]
     return s[cv2.CC_STAT_LEFT], y, s[cv2.CC_STAT_WIDTH], height
