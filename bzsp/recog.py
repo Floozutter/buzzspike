@@ -1,7 +1,7 @@
 import cv2
 import numpy
-from numpy import ndarray
 import functools
+from numpy import ndarray
 from typing import Any, NamedTuple, Iterable
 
 class Kill(NamedTuple):
