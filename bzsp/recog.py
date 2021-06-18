@@ -1,5 +1,7 @@
 import cv2
 import numpy
+import pytesseract
+import PIL
 import functools
 from numpy import ndarray
 from typing import Any, NamedTuple, Iterable
@@ -54,6 +56,9 @@ def bind_chevron(white_segment: ndarray, chevron: ndarray) -> ndarray:
     _, labeled, stats, _ = cv2.connectedComponentsWithStats(bimg)
     s = stats[labeled[0, x]]
     return s[cv2.CC_STAT_LEFT], y, s[cv2.CC_STAT_WIDTH], height
+
+def read_kill(white_segment: PIL.Image, box: ndarray, team: str) -> Kill:
+    ...
 
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
