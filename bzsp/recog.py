@@ -57,8 +57,8 @@ def bind_chevron(white_segment: ndarray, chevron: ndarray) -> ndarray:
     s = stats[labeled[0, x]]
     return s[cv2.CC_STAT_LEFT], y, s[cv2.CC_STAT_WIDTH], height
 
-def read_kill(white_segment: PIL.Image, box: ndarray, team: str) -> Kill:
-    ...
+def read_kill(image: PIL.Image, team: str, box: ndarray,) -> Kill:
+    return Kill(team, ..., ...)
 
 def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     # get color segments
@@ -76,8 +76,9 @@ def killfeed_with_work(image: ndarray) -> tuple[tuple[Kill, ...], Work]:
     green_boxes = tuple(bind_chevron(white_segment, c) for c in green_chevrons)
     red_boxes = tuple(bind_chevron(white_segment, c) for c in red_chevrons)
     # read kills
-    green_kills = tuple(Kill("green", "", "") for _ in green_boxes)
-    red_kills = tuple(Kill("red", "", "") for _ in red_boxes)
+    legible = PIL.Image.fromarray(white_segment)
+    green_kills = tuple(read_kill(legible, "green", b) for b in green_boxes)
+    red_kills = tuple(read_kill(legible, "red", b) for b in red_boxes)
     return green_kills + red_kills, {
         "white_segment": white_segment,
         "green_segment": green_segment,
